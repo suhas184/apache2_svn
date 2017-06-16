@@ -16,11 +16,17 @@ RUN apt-get install -y subversion
 RUN apt-get install -y subversion-tools 
 RUN apt-get install -y libapache2-svn
 
-EXPOSE 80 
+EXPOSE 6000 
 
 COPY resources/dav_svn.conf /etc/apache2/mods-available/dav_svn.conf
 COPY resources/svn_repo.sh /var/svn_repo.sh
+COPY resources/start_apache2_svn.sh /var/start_apache2_svn.sh
+RUN chmod 775 /var/start_apache2_svn.sh
 RUN chmod 775 /var/svn_repo.sh
 RUN /var/svn_repo.sh
 
-CMD apache2 -DFOREGROUND
+VOLUME ["/etc/apache2/"]
+
+#CMD apache2 -DFOREGROUND
+#CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"] 
+ENTRYPOINT ["/var/start_apache2_svn.sh"]
