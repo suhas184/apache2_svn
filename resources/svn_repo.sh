@@ -1,3 +1,4 @@
+#Script to create an svn repository
 mkdir /var/svn
 cd /var/svn
 svnadmin create firstrepo
