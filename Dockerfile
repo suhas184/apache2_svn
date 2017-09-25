@@ -1,28 +1,57 @@
 FROM ubuntu:14.04
-RUN apt-get -y update && apt-get install -y apache2
 
-ENV APACHE_CONFDIR /etc/apache2
-ENV APACHE_ENVVARS $APACHE_CONFDIR/envvars
-ENV APACHE_RUN_USER www-data
-ENV APACHE_RUN_GROUP www-data
-ENV APACHE_RUN_DIR /var/run/apache2
-ENV APACHE_PID_FILE $APACHE_RUN_DIR/apache2.pid
-ENV APACHE_LOCK_DIR /var/lock/apache2
-ENV APACHE_LOG_DIR /var/log/apache2
+ENV APACHE_PORT=9090 \
+    APACHE_CONFDIR=/etc/apache2 \
+    APACHE_ENVVARS=$APACHE_CONFDIR/envvars \
+    APACHE_RUN_USER=www-data \
+    APACHE_RUN_GROUP=www-data \
+    APACHE_RUN_DIR=/var/run/apache2 \
+    APACHE_PID_FILE=$APACHE_RUN_DIR/apache2.pid \
+    APACHE_LOCK_DIR=/var/lock/apache2 \
+    APACHE_LOG_DIR=/var/log/apache2 \
+    LDAP_ENABLED=true \
+    LDAP_SEARCH_BASE="" \
+    LDAP_URL="" \
+    LDAP_PORT=389 \
+    LDAP_AUTH_PROTOCOL=ldap \
+    LDAP_USER_EMAIL_ATTRIBUTE=mail \
+    LDAP_GROUPS_AS_ROLES=true \
+    LDAP_GROUP_BASE_DN=ou=groups \
+    LDAP_GROUP_ID_ATTRIBUTE=cn \
+    LDAP_GROUP_MEMBER_ATTRIBUTE=uniqueMember \
+    LDAP_GROUP_OBJECT_CLASS=groupOfUniqueNames \
+    LDAP_PREFERRED_PASSWORD_ENCODING=crypt \
+    LDAP_USER_ID_ATTRIBUTE=uid \
+    LDAP_USER_PASSWORD_ATTRIBUTE=userPassword \
+    LDAP_USER_OBJECT_CLASS=inetOrgPerson \
+    LDAP_USER_BASE_DN=ou-people \
+    LDAP_USER_REAL_NAME_ATTRIBUTE=cn \
+    LDAP_GROUP_MEMBER_FORMAT=dn
 
+
+#RUN apt-get update && apt-get install -y \
+#    apache2 \
+#    subversion \
+#    subversion-tools \
+#    libapache2-svn
+RUN apt-get update && apt-get install -y apache2
+#RUN apt-get install -y apache2
+RUN apt-get install -y subversion
+RUN apt-get install -y suberversion-tools
+RUN apt-get install -y libapache2-svn
 RUN mkdir -p $APACHE_RUN_DIR $APACHE_LOCK_DIR $APACHE_LOG_DIR /var/svn
 
-RUN apt-get install -y subversion subversion-tools libapache2-svn
-
-EXPOSE 6000 80
+EXPOSE $APACHE_PORT 3690
 
 RUN mkdir -p /var/svn && \
     cd /var/svn
 
+COPY resources/ /resources/
 COPY resources/dav_svn.conf /etc/apache2/mods-available/dav_svn.conf
-COPY resources/start_apache2_svn.sh /var/start_apache2_svn.sh
-RUN chmod +x /var/start_apache2_svn.sh
+COPY resources/start_apache2_svn.sh /usr/local/bin/start_apache2_svn.sh
+
+RUN chmod +x /usr/local/bin/start_apache2_svn.sh
 
 VOLUME ["/etc/apache2/"]
 
-ENTRYPOINT ["/var/start_apache2_svn.sh"]
+ENTRYPOINT ["/usr/local/bin/start_apache2_svn.sh"]
